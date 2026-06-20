@@ -1,278 +1,126 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SmartSub — Умная подписка</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css" />
 
-  <link rel="stylesheet" href="css/style.css"/>
+  <link rel="stylesheet" href="css/style.css" />
 
   <script>
-    // Базовый адрес бэкенда SmartSub.Api. Поменяй порт на тот, что выведется
-    // в консоли при `dotnet run` (обычно https://localhost:5001 или http://localhost:5000).
     window.API_BASE_URL = "http://localhost:5000";
   </script>
 </head>
+
 <body>
 
-<div class="auth-wrap" id="authWrap">
-  <div class="auth-card">
-    <div class="auth-logo">✦ SmartSub</div>
-    <div class="auth-subtitle" id="authSubtitle">Войдите, чтобы управлять подписками</div>
+  <div class="auth-wrap" id="authWrap">
+    <div class="auth-card">
+      <div class="auth-logo">✦ SmartSub</div>
+      <div class="auth-subtitle" id="authSubtitle">Войдите, чтобы управлять подписками</div>
 
-    <div class="auth-tabs">
-      <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Вход</button>
-      <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Регистрация</button>
-    </div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Вход</button>
+        <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Регистрация</button>
+      </div>
 
-    <div id="authError" class="auth-error" style="display:none;"></div>
+      <div id="authError" class="auth-error" style="display:none;"></div>
 
-    <!-- Форма входа -->
-    <div id="loginForm">
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com"/>
+      <div id="loginForm">
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="loginEmail" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Пароль</label>
+          <input class="form-input" type="password" id="loginPassword" placeholder="••••••••" />
+        </div>
+        <button class="btn-save auth-submit" onclick="login()">Войти</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Пароль</label>
-        <input class="form-input" type="password" id="loginPassword" placeholder="••••••••"/>
-      </div>
-      <button class="btn-save auth-submit" onclick="login()">Войти</button>
-    </div>
 
-    <!-- Форма регистрации -->
-    <div id="registerForm" style="display:none;">
-      <div class="form-group">
-        <label class="form-label">Имя</label>
-        <input class="form-input" type="text" id="regName" placeholder="Катя"/>
+      <div id="registerForm" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Имя</label>
+          <input class="form-input" type="text" id="regName" placeholder="Имя" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input class="form-input" type="email" id="regEmail" placeholder="you@example.com" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Пароль</label>
+          <input class="form-input" type="password" id="regPassword" placeholder="минимум 6 символов" />
+        </div>
+        <button class="btn-save auth-submit" onclick="register()">Создать аккаунт</button>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email</label>
-        <input class="form-input" type="email" id="regEmail" placeholder="you@example.com"/>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Пароль</label>
-        <input class="form-input" type="password" id="regPassword" placeholder="минимум 6 символов"/>
-      </div>
-      <button class="btn-save auth-submit" onclick="register()">Создать аккаунт</button>
     </div>
   </div>
-</div>
 
-<div class="app" id="appRoot" style="display:none;">
+  <div class="app" id="appRoot" style="display:none;">
 
-  <nav class="nav">
-    <span class="nav-logo">✦ SmartSub</span>
-    <ul class="nav-links">
-      <li class="active" data-page="dashboard" onclick="switchPage('dashboard')">Дашборд</li>
-      <li data-page="analytics" onclick="switchPage('analytics')">Аналитика</li>
-      <li data-page="profile" onclick="switchPage('profile')">Профиль</li>
-    </ul>
-    <div class="nav-right">
-      <span class="nav-user" id="navUserName">Привет!</span>
-      <button class="nav-btn" onclick="logout()">Выйти</button>
-    </div>
-  </nav>
-
-  <div class="main">
-
-    <div class="page active" id="pageDashboard">
-
-    <div class="section-label">Обзор расходов</div>
-    <div class="stats-grid">
-
-      <div class="stat-card">
-        <div class="stat-icon"><i class="ti ti-calendar-month" aria-hidden="true"></i></div>
-        <div class="stat-label">За этот месяц</div>
-        <div class="stat-value" id="statMonthly">— ₽</div>
-        <div class="stat-sub" id="statCount">0 активных подписок</div>
+    <nav class="nav">
+      <span class="nav-logo">✦ SmartSub</span>
+      <ul class="nav-links">
+        <li class="active" data-page="dashboard" onclick="switchPage('dashboard')">Дашборд</li>
+        <li data-page="analytics" onclick="switchPage('analytics')">Аналитика</li>
+        <li data-page="profile" onclick="switchPage('profile')">Профиль</li>
+      </ul>
+      <div class="nav-right">
+        <span class="nav-user" id="navUserName">Привет!</span>
+        <button class="nav-btn" onclick="logout()">Выйти</button>
       </div>
+    </nav>
 
-      <div class="stat-card accent">
-        <div class="stat-icon"><i class="ti ti-bell-ringing" aria-hidden="true"></i></div>
-        <div class="stat-label">Ближайший платёж</div>
-        <div class="stat-value" id="statNextPrice">— ₽</div>
-        <div class="stat-sub" id="statNextInfo">Нет предстоящих платежей</div>
-      </div>
+    <div class="main">
 
-      <div class="stat-card warn">
-        <div class="stat-icon"><i class="ti ti-chart-line" aria-hidden="true"></i></div>
-        <div class="stat-label">Прогноз на год</div>
-        <div class="stat-value" id="statYearly">— ₽</div>
-        <div class="stat-sub" id="statAverage">Среднее —/мес</div>
-      </div>
+      <div class="page active" id="pageDashboard">
 
-    </div>
+        <div class="section-label">Обзор расходов</div>
+        <div class="stats-grid">
 
-    <div class="subs-header">
-      <div class="subs-title">Мои подписки</div>
-      <button class="add-btn" onclick="openModal()">
-        <i class="ti ti-plus" aria-hidden="true"></i> Добавить подписку
-      </button>
-    </div>
-
-    <div class="filters">
-      <div class="search-box">
-        <i class="ti ti-search" aria-hidden="true"></i>
-        <input type="text" placeholder="Поиск подписки..." id="searchInput" oninput="filterSubs()"/>
-      </div>
-      <select class="filter-select" id="catFilter" onchange="filterSubs()">
-        <option value="">Все категории</option>
-        <option value="Music">Музыка</option>
-        <option value="Movies">Кино</option>
-        <option value="Work">Работа</option>
-        <option value="Security">Безопасность</option>
-        <option value="Cloud">Облако</option>
-        <option value="Other">Другое</option>
-      </select>
-    </div>
-
-    <div class="section-label">Активные подписки</div>
-    <div class="subs-grid" id="subsGrid"></div>
-
-    </div>
-
-    <!-- ===================== Страница: Аналитика ===================== -->
-    <div class="page" id="pageAnalytics">
-
-      <div class="section-label">Расходы по категориям</div>
-      <div class="analytics-grid">
-        <div class="chart-card">
-          <svg id="categoryChart" viewBox="0 0 240 240" class="donut-chart"></svg>
-          <div class="chart-legend" id="categoryLegend"></div>
-        </div>
-
-        <div class="chart-card">
-          <div class="bar-chart" id="forecastChart"></div>
-        </div>
-      </div>
-
-      <div class="subs-header" style="margin-top:28px;">
-        <div class="subs-title">Все платежи</div>
-      </div>
-
-      <table class="payments-table">
-        <thead>
-          <tr>
-            <th>Сервис</th>
-            <th>Категория</th>
-            <th>Стоимость</th>
-            <th>Периодичность</th>
-            <th>Следующее списание</th>
-          </tr>
-        </thead>
-        <tbody id="paymentsTableBody"></tbody>
-      </table>
-
-    </div>
-
-    <!-- ===================== Страница: Профиль ===================== -->
-    <div class="page" id="pageProfile">
-
-      <div class="section-label">Профиль</div>
-      <div class="profile-grid">
-
-        <div class="profile-card">
-          <div class="profile-avatar" id="profileAvatar">?</div>
-          <div class="profile-name" id="profileName">—</div>
-          <div class="profile-email" id="profileEmail">—</div>
-          <div class="profile-since" id="profileSince">—</div>
-        </div>
-
-        <div class="profile-card">
-          <div class="modal-title" style="margin-bottom:16px;">Данные аккаунта</div>
-
-          <div id="profileError" class="auth-error" style="display:none;"></div>
-          <div id="profileSuccess" class="profile-success" style="display:none;"></div>
-
-          <div class="form-group">
-            <label class="form-label">Имя</label>
-            <input class="form-input" type="text" id="profileDisplayName"/>
+          <div class="stat-card">
+            <div class="stat-icon"><i class="ti ti-calendar-month" aria-hidden="true"></i></div>
+            <div class="stat-label">За этот месяц</div>
+            <div class="stat-value" id="statMonthly">— ₽</div>
+            <div class="stat-sub" id="statCount">0 активных подписок</div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input class="form-input" type="email" id="profileEmailInput" disabled/>
+          <div class="stat-card accent">
+            <div class="stat-icon"><i class="ti ti-bell-ringing" aria-hidden="true"></i></div>
+            <div class="stat-label">Ближайший платёж</div>
+            <div class="stat-value" id="statNextPrice">— ₽</div>
+            <div class="stat-sub" id="statNextInfo">Нет предстоящих платежей</div>
           </div>
 
-          <div class="form-group">
-            <label class="form-label">Напоминать о платеже за (дней)</label>
-            <input class="form-input" type="number" id="profileNotifyDays" min="0" max="30"/>
+          <div class="stat-card warn">
+            <div class="stat-icon"><i class="ti ti-chart-line" aria-hidden="true"></i></div>
+            <div class="stat-label">Прогноз на год</div>
+            <div class="stat-value" id="statYearly">— ₽</div>
+            <div class="stat-sub" id="statAverage">Среднее —/мес</div>
           </div>
 
-          <button class="btn-save auth-submit" onclick="saveProfile()">Сохранить изменения</button>
         </div>
 
-        <div class="profile-card">
-          <div class="modal-title" style="margin-bottom:16px;">Смена пароля</div>
+        <div class="subs-header">
+          <div class="subs-title">Мои подписки</div>
+          <button class="add-btn" onclick="openModal()">
+            <i class="ti ti-plus" aria-hidden="true"></i> Добавить подписку
+          </button>
+        </div>
 
-          <div id="passwordError" class="auth-error" style="display:none;"></div>
-          <div id="passwordSuccess" class="profile-success" style="display:none;"></div>
-
-          <div class="form-group">
-            <label class="form-label">Текущий пароль</label>
-            <input class="form-input" type="password" id="currentPassword"/>
+        <div class="filters">
+          <div class="search-box">
+            <i class="ti ti-search" aria-hidden="true"></i>
+            <input type="text" placeholder="Поиск подписки..." id="searchInput" oninput="filterSubs()" />
           </div>
-          <div class="form-group">
-            <label class="form-label">Новый пароль</label>
-            <input class="form-input" type="password" id="newPassword" placeholder="минимум 6 символов"/>
-          </div>
-
-          <button class="btn-save auth-submit" onclick="changePassword()">Изменить пароль</button>
-        </div>
-
-      </div>
-    </div>
-
-  </div>
-
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal">
-      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
-      <div class="modal-title" id="modalTitle">Добавить подписку</div>
-      <input type="hidden" id="editId" value=""/>
-
-      <div class="form-group">
-        <label class="form-label">Название сервиса</label>
-        <input class="form-input" type="text" placeholder="Netflix" id="newName"/>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Стоимость</label>
-          <input class="form-input" type="number" placeholder="799" id="newPrice"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Валюта</label>
-          <select class="form-input" id="newCurrency">
-            <option value="RUB">₽ (RUB)</option>
-            <option value="EUR">€ (EUR)</option>
-            <option value="USD">$ (USD)</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Периодичность</label>
-        <select class="form-input" id="newPeriod">
-          <option value="Monthly">Каждый месяц</option>
-          <option value="Yearly">Каждый год</option>
-          <option value="Quarterly">Каждые 3 месяца</option>
-        </select>
-      </div>
-
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Дата списания</label>
-          <input class="form-input" type="date" id="newDate"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Категория</label>
-          <select class="form-input" id="newCat">
+          <select class="filter-select" id="catFilter" onchange="filterSubs()">
+            <option value="">Все категории</option>
             <option value="Music">Музыка</option>
             <option value="Movies">Кино</option>
             <option value="Work">Работа</option>
@@ -281,22 +129,172 @@
             <option value="Other">Другое</option>
           </select>
         </div>
+
+        <div class="section-label">Активные подписки</div>
+        <div class="subs-grid" id="subsGrid"></div>
+
       </div>
 
-      <div class="notify-row">
-        <input type="checkbox" id="notifyCheck" checked/>
-        <label for="notifyCheck" id="notifyLabel">Напомнить за 3 дня до списания</label>
+      <div class="page" id="pageAnalytics">
+
+        <div class="section-label">Расходы по категориям</div>
+        <div class="analytics-grid">
+          <div class="chart-card">
+            <svg id="categoryChart" viewBox="0 0 240 240" class="donut-chart"></svg>
+            <div class="chart-legend" id="categoryLegend"></div>
+          </div>
+
+          <div class="chart-card">
+            <div class="bar-chart" id="forecastChart"></div>
+          </div>
+        </div>
+
+        <div class="subs-header" style="margin-top:28px;">
+          <div class="subs-title">Все платежи</div>
+        </div>
+
+        <table class="payments-table">
+          <thead>
+            <tr>
+              <th>Сервис</th>
+              <th>Категория</th>
+              <th>Стоимость</th>
+              <th>Периодичность</th>
+              <th>Следующее списание</th>
+            </tr>
+          </thead>
+          <tbody id="paymentsTableBody"></tbody>
+        </table>
+
       </div>
 
-      <div class="modal-footer">
-        <button class="btn-cancel" onclick="closeModal()">Отмена</button>
-        <button class="btn-save" onclick="saveSubscription()">Сохранить</button>
+      <div class="page" id="pageProfile">
+
+        <div class="section-label">Профиль</div>
+        <div class="profile-grid">
+
+          <div class="profile-card">
+            <div class="profile-avatar" id="profileAvatar">?</div>
+            <div class="profile-name" id="profileName">—</div>
+            <div class="profile-email" id="profileEmail">—</div>
+            <div class="profile-since" id="profileSince">—</div>
+          </div>
+
+          <div class="profile-card">
+            <div class="modal-title" style="margin-bottom:16px;">Данные аккаунта</div>
+
+            <div id="profileError" class="auth-error" style="display:none;"></div>
+            <div id="profileSuccess" class="profile-success" style="display:none;"></div>
+
+            <div class="form-group">
+              <label class="form-label">Имя</label>
+              <input class="form-input" type="text" id="profileDisplayName" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input class="form-input" type="email" id="profileEmailInput" disabled />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Напоминать о платеже за (дней)</label>
+              <input class="form-input" type="number" id="profileNotifyDays" min="0" max="30" />
+            </div>
+
+            <button class="btn-save auth-submit" onclick="saveProfile()">Сохранить изменения</button>
+          </div>
+
+          <div class="profile-card">
+            <div class="modal-title" style="margin-bottom:16px;">Смена пароля</div>
+
+            <div id="passwordError" class="auth-error" style="display:none;"></div>
+            <div id="passwordSuccess" class="profile-success" style="display:none;"></div>
+
+            <div class="form-group">
+              <label class="form-label">Текущий пароль</label>
+              <input class="form-input" type="password" id="currentPassword" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Новый пароль</label>
+              <input class="form-input" type="password" id="newPassword" placeholder="минимум 6 символов" />
+            </div>
+
+            <button class="btn-save auth-submit" onclick="changePassword()">Изменить пароль</button>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+      <div class="modal">
+        <button class="modal-close" onclick="closeModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+        <div class="modal-title" id="modalTitle">Добавить подписку</div>
+        <input type="hidden" id="editId" value="" />
+
+        <div class="form-group">
+          <label class="form-label">Название сервиса</label>
+          <input class="form-input" type="text" placeholder="Netflix" id="newName" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Стоимость</label>
+            <input class="form-input" type="number" placeholder="799" id="newPrice" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Валюта</label>
+            <select class="form-input" id="newCurrency">
+              <option value="RUB">₽ (RUB)</option>
+              <option value="EUR">€ (EUR)</option>
+              <option value="USD">$ (USD)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Периодичность</label>
+          <select class="form-input" id="newPeriod">
+            <option value="Monthly">Каждый месяц</option>
+            <option value="Yearly">Каждый год</option>
+            <option value="Quarterly">Каждые 3 месяца</option>
+          </select>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Дата списания</label>
+            <input class="form-input" type="date" id="newDate" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Категория</label>
+            <select class="form-input" id="newCat">
+              <option value="Music">Музыка</option>
+              <option value="Movies">Кино</option>
+              <option value="Work">Работа</option>
+              <option value="Security">Безопасность</option>
+              <option value="Cloud">Облако</option>
+              <option value="Other">Другое</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="notify-row">
+          <input type="checkbox" id="notifyCheck" checked />
+          <label for="notifyCheck" id="notifyLabel">Напомнить за 3 дня до списания</label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn-cancel" onclick="closeModal()">Отмена</button>
+          <button class="btn-save" onclick="saveSubscription()">Сохранить</button>
+        </div>
       </div>
     </div>
+
   </div>
 
-</div>
-
-<script src="js/app.js"></script>
+  <script src="js/app.js"></script>
 </body>
+
 </html>

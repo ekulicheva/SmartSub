@@ -14,7 +14,6 @@ public static class ProfileEndpoints
         var group = app.MapGroup("/api/profile").WithTags("Profile").RequireAuthorization();
         var hasher = new PasswordHasher<User>();
 
-        // GET /api/profile — данные текущего пользователя
         group.MapGet("/", async (HttpContext ctx, AppDbContext db) =>
         {
             var userId = GetUserId(ctx);
@@ -26,7 +25,6 @@ public static class ProfileEndpoints
             ));
         });
 
-        // PUT /api/profile — обновить имя и настройку напоминаний по умолчанию
         group.MapPut("/", async (UpdateProfileRequest req, HttpContext ctx, AppDbContext db) =>
         {
             if (string.IsNullOrWhiteSpace(req.DisplayName))
@@ -48,7 +46,6 @@ public static class ProfileEndpoints
             ));
         });
 
-        // POST /api/profile/change-password — смена пароля
         group.MapPost("/change-password", async (ChangePasswordRequest req, HttpContext ctx, AppDbContext db) =>
         {
             if (string.IsNullOrWhiteSpace(req.NewPassword) || req.NewPassword.Length < 6)

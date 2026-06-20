@@ -14,7 +14,6 @@ public static class SubscriptionEndpoints
             .WithTags("Subscriptions")
             .RequireAuthorization();
 
-        // GET /api/subscriptions?search=netflix&category=Movies
         group.MapGet("/", async (
             HttpContext ctx,
             AppDbContext db,
@@ -39,7 +38,6 @@ public static class SubscriptionEndpoints
             return Results.Ok(result);
         });
 
-        // GET /api/subscriptions/{id}
         group.MapGet("/{id:int}", async (int id, HttpContext ctx, AppDbContext db) =>
         {
             var userId = GetUserId(ctx);
@@ -47,7 +45,6 @@ public static class SubscriptionEndpoints
             return sub is null ? Results.NotFound() : Results.Ok(SubscriptionResponse.FromEntity(sub));
         });
 
-        // POST /api/subscriptions
         group.MapPost("/", async (SubscriptionRequest req, HttpContext ctx, AppDbContext db) =>
         {
             if (string.IsNullOrWhiteSpace(req.Name))
@@ -77,7 +74,6 @@ public static class SubscriptionEndpoints
             return Results.Created($"/api/subscriptions/{sub.Id}", SubscriptionResponse.FromEntity(sub));
         });
 
-        // PUT /api/subscriptions/{id}
         group.MapPut("/{id:int}", async (int id, SubscriptionRequest req, HttpContext ctx, AppDbContext db) =>
         {
             var userId = GetUserId(ctx);
@@ -97,7 +93,6 @@ public static class SubscriptionEndpoints
             return Results.Ok(SubscriptionResponse.FromEntity(sub));
         });
 
-        // DELETE /api/subscriptions/{id}
         group.MapDelete("/{id:int}", async (int id, HttpContext ctx, AppDbContext db) =>
         {
             var userId = GetUserId(ctx);
@@ -109,7 +104,6 @@ public static class SubscriptionEndpoints
             return Results.NoContent();
         });
 
-        // GET /api/subscriptions/stats — статистика для дашборда
         app.MapGet("/api/stats", async (HttpContext ctx, AppDbContext db) =>
         {
             var userId = GetUserId(ctx);
@@ -134,13 +128,11 @@ public static class SubscriptionEndpoints
             return Results.Ok(response);
         }).WithTags("Subscriptions").RequireAuthorization();
 
-        // GET /api/analytics — данные для страницы "Аналитика": разбивка по категориям + помесячный прогноз
         app.MapGet("/api/analytics", async (HttpContext ctx, AppDbContext db) =>
         {
             var userId = GetUserId(ctx);
             var subs = await db.Subscriptions.Where(s => s.UserId == userId).ToListAsync();
 
-            // Разбивка расходов по категориям (в пересчёте на месяц)
             var byCategory = subs
                 .GroupBy(s => s.Category)
                 .Select(g => new CategoryBreakdown(
@@ -150,7 +142,6 @@ public static class SubscriptionEndpoints
                 .OrderByDescending(c => c.MonthlyAmount)
                 .ToList();
 
-            // Прогноз расходов на ближайшие 6 месяцев (считаем, что состав подписок не меняется)
             var monthlyTotal = subs.Sum(s => s.MonthlyEquivalent);
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             var forecast = Enumerable.Range(0, 6)

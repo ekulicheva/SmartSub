@@ -1,10 +1,4 @@
-// =====================================================================
-// SmartSub — фронтенд, подключённый к реальному бэкенду SmartSub.Api
-// =====================================================================
-
 const API = window.API_BASE_URL || "http://localhost:5000";
-
-// ---------- Справочники: маппинг enum-значений бэкенда <-> русский текст ----------
 
 const CATEGORY_LABELS = {
   Music: "Музыка",
@@ -21,23 +15,16 @@ const PERIOD_LABELS = {
   Yearly: "/год"
 };
 
-// Цвет иконки подбирается по первой букве названия — стабильно и без доп. данных от API
 const ICON_COLORS = ["#7A9CB3", "#AD7556", "#53443D", "#1D9E75", "#D85A30", "#6a89a0"];
 function colorForName(name) {
   const code = name.charCodeAt(0) || 0;
   return ICON_COLORS[code % ICON_COLORS.length];
 }
 
-// ---------- Состояние ----------
-
-let subs = [];       // текущий список подписок с сервера (уже отфильтрованный)
+let subs = [];
 let authToken = localStorage.getItem("smartsub_token") || null;
 let currentUser = null;
-let currentProfile = null; // данные профиля с /api/profile (включая DefaultNotifyDaysBefore)
-
-// =====================================================================
-// Авторизация
-// =====================================================================
+let currentProfile = null;
 
 function switchAuthTab(tab) {
   const isLogin = tab === "login";
@@ -143,7 +130,7 @@ function showApp() {
     ? `Привет, ${currentUser.displayName}!`
     : "Привет!";
   loadDashboard();
-  loadProfile(); // подгружаем заранее, чтобы defaultNotifyDaysBefore был доступен при открытии модалки
+  loadProfile();
 }
 
 function showAuth() {
@@ -152,7 +139,6 @@ function showAuth() {
   hideAuthError();
 }
 
-// ---------- Навигация между страницами (Дашборд / Аналитика / Профиль) ----------
 
 function switchPage(page) {
   document.querySelectorAll(".page").forEach((el) => el.classList.remove("active"));
@@ -170,7 +156,6 @@ function capitalize(str) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
-// ---------- Обёртка для авторизованных запросов ----------
 
 async function apiFetch(path, options = {}) {
   const res = await fetch(`${API}${path}`, {
@@ -183,7 +168,6 @@ async function apiFetch(path, options = {}) {
   });
 
   if (res.status === 401) {
-    // токен истёк или недействителен — выкидываем на экран входа
     logout();
     throw new Error("Сессия истекла, войдите снова");
   }
@@ -195,9 +179,6 @@ async function safeJson(res) {
   try { return await res.json(); } catch { return null; }
 }
 
-// =====================================================================
-// Загрузка дашборда (статистика + подписки)
-// =====================================================================
 
 async function loadDashboard() {
   await Promise.all([loadStats(), filterSubs()]);
@@ -224,13 +205,8 @@ async function loadStats() {
       document.getElementById("statNextInfo").textContent = "Нет предстоящих платежей";
     }
   } catch (e) {
-    // ошибка уже обработана в apiFetch (logout при 401), здесь просто не падаем дальше
   }
 }
-
-// =====================================================================
-// Подписки: список, поиск, фильтр
-// =====================================================================
 
 async function filterSubs() {
   const q = document.getElementById("searchInput").value.trim();
@@ -246,7 +222,6 @@ async function filterSubs() {
     subs = await res.json();
     renderSubs(subs);
   } catch (e) {
-    // обработано в apiFetch
   }
 }
 
@@ -282,13 +257,8 @@ async function deleteSub(id) {
       await loadDashboard();
     }
   } catch (e) {
-    // обработано в apiFetch
   }
 }
-
-// =====================================================================
-// Аналитика: графики по категориям, прогноз по месяцам, таблица платежей
-// =====================================================================
 
 async function loadAnalytics() {
   try {
@@ -308,7 +278,6 @@ async function loadAnalytics() {
       renderPaymentsTable(allSubs);
     }
   } catch (e) {
-    // обработано в apiFetch
   }
 }
 
@@ -405,10 +374,6 @@ function formatMonthLabel(yyyyMM) {
   return d.toLocaleDateString("ru-RU", { month: "short" });
 }
 
-// =====================================================================
-// Модальное окно: добавление / редактирование подписки
-// =====================================================================
-
 function openModal() {
   document.getElementById("editId").value = "";
   document.getElementById("modalTitle").textContent = "Добавить подписку";
@@ -492,13 +457,8 @@ async function saveSubscription() {
     closeModal();
     await loadDashboard();
   } catch (e) {
-    // обработано в apiFetch
   }
 }
-
-// =====================================================================
-// Профиль: данные пользователя, настройки уведомлений, смена пароля
-// =====================================================================
 
 async function loadProfile() {
   try {
@@ -516,7 +476,6 @@ async function loadProfile() {
     document.getElementById("profileEmailInput").value = profile.email;
     document.getElementById("profileNotifyDays").value = profile.defaultNotifyDaysBefore;
   } catch (e) {
-    // обработано в apiFetch
   }
 }
 
@@ -555,7 +514,6 @@ async function saveProfile() {
 
     showProfileSuccess("Изменения сохранены");
   } catch (e) {
-    // обработано в apiFetch
   }
 }
 
@@ -590,7 +548,6 @@ async function changePassword() {
     document.getElementById("newPassword").value = "";
     showPasswordSuccess("Пароль успешно изменён");
   } catch (e) {
-    // обработано в apiFetch
   }
 }
 
@@ -628,10 +585,6 @@ function hidePasswordMessages() {
   document.getElementById("passwordSuccess").style.display = "none";
 }
 
-// =====================================================================
-// Вспомогательные функции форматирования
-// =====================================================================
-
 function formatMoney(value) {
   const n = Number(value) || 0;
   return `${n.toLocaleString("ru-RU", { maximumFractionDigits: 0 })} ₽`;
@@ -665,10 +618,6 @@ function pluralDays(n) {
   if (mod10 >= 2 && mod10 <= 4) return "дня";
   return "дней";
 }
-
-// =====================================================================
-// Старт приложения
-// =====================================================================
 
 (function init() {
   const savedUser = localStorage.getItem("smartsub_user");

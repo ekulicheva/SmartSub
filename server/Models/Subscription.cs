@@ -36,9 +36,6 @@ public class Subscription
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-    /// <summary>
-    /// Приводит стоимость подписки к эквиваленту "за месяц" — нужно для статистики и прогнозов.
-    /// </summary>
     public decimal MonthlyEquivalent => Period switch
     {
         BillingPeriod.Monthly => Price,
